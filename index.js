@@ -194,10 +194,26 @@ class ArloPlatform {
         var arlo = new Arlo();
 
         arlo.on(
+          "logged_in",
+          function (serialNumber) {
+            this.log("Logged in <" + serialNumber + ">")
+          }.bind(this)
+        );
+
+        arlo.on(
+          "got_devices",
+          function (devices) {
+            this.log("Found devices <" + devices + ">")
+          }.bind(this)
+        );
+
+        arlo.on(
           Arlo.FOUND,
           function (device) {
             let uuid = UUIDGen.generate(device.id);
             let accessory = this.accessories[uuid];
+
+            this.log(accessory)
 
             if (accessory === undefined) {
               this.addAccessory(device);
@@ -252,7 +268,12 @@ class ArloPlatform {
           }.bind(this)
         );
 
-        arlo.login(this.config.email, this.config.password);
+        if (this.config.token) {
+            arlo.headers["Authorization"] = this.config.token;
+            arlo.getDevices();
+        } else {
+            arlo.login(this.config.email, this.config.password);
+        }
       }.bind(this)
     );
   }
